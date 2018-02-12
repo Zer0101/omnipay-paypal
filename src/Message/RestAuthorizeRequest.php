@@ -169,7 +169,7 @@ namespace Omnipay\PayPal\Message;
  *
  *   // Once the transaction has been approved, we need to complete it.
  *   $transaction = $gateway->completePurchase(array(
- *       'payer_id'             => $payer_id,
+ *       'payerId'              => $payer_id,
  *       'transactionReference' => $sale_id,
  *   ));
  *   $response = $transaction->send();
@@ -234,6 +234,11 @@ class RestAuthorizeRequest extends AbstractRestRequest
             ),
             'experience_profile_id' => $this->getExperienceProfileId()
         );
+
+        $invoiceNumber = $this->getTransactionId();
+        if(!empty($invoiceNumber)) {
+            $data['transactions'][0]['invoice_number'] = $invoiceNumber;
+        }
 
         $items = $this->getItems();
         if ($items) {
@@ -322,28 +327,6 @@ class RestAuthorizeRequest extends AbstractRestRequest
     public function setExperienceProfileId($value)
     {
         return $this->setParameter('experienceProfileId', $value);
-    }
-
-    /**
-     * Get transaction description.
-     *
-     * The REST API does not currently have support for passing an invoice number
-     * or transaction ID.
-     *
-     * @return string
-     */
-    public function getDescription()
-    {
-        $id = $this->getTransactionId();
-        $desc = parent::getDescription();
-
-        if (empty($id)) {
-            return $desc;
-        } elseif (empty($desc)) {
-            return $id;
-        } else {
-            return "$id : $desc";
-        }
     }
 
     /**
